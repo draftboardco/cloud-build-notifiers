@@ -1,28 +1,46 @@
 [
     {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "Cloud Build Notification",
+        "emoji": true
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Project:*\n{{.Build.ProjectId}}"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Build ID:*\n{{.Build.Id}}"
+        }
+      ]
+    },
+    {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "Cloud Build {{.Build.ProjectId}} {{.Build.Id}} {{.Build.Status}}"
+        "text": "*Status:* {{if eq .Build.Status \"SUCCESS\"}}✅{{else if eq .Build.Status \"FAILURE\"}}❌{{else if eq .Build.Status \"WORKING\"}}⏳{{else}}❓{{end}} {{.Build.Status}}"
       }
     },
     {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "{{if .Build.Source}}*Source Information:*\n• Type: {{getSourceType .Build.Source}}\n• Location: {{getRepoName .Build.Source}}{{if getSourceRef .Build.Source}}\n• {{getSourceRef .Build.Source}}{{end}}{{if getGitRef .Build}}\n• Git Ref: {{getGitRef .Build}}{{end}}{{end}}"
+        "text": "{{if .Build.Source}}{{with .Build.Source.Source}}{{if .GitSource}}*GitHub Repository Details*\n\n*Repository:* {{$.Build.Substitutions.REPO_FULL_NAME}}\n*Branch:* {{$.Build.Substitutions.BRANCH_NAME}} ({{$.Build.Substitutions.SHORT_SHA}})\n*Commit:* `{{.GitSource.Revision}}`{{else if .StorageSource}}*Cloud Storage Details*\n\n*Bucket:* gs://{{.StorageSource.Bucket}}\n*Object:* `{{.StorageSource.Object}}`\n*Generation:* {{.StorageSource.Generation}}{{end}}{{end}}{{end}}"
       }
     },
-    {{$deployInfo := getDeploymentInfo .Build}}
-    {{if $deployInfo}}
     {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Deployment Information:*{{if isProd $deployInfo}} ⚠️ *PRODUCTION*{{end}}\n{{if $deployInfo.project}}• Project: {{$deployInfo.project}}{{end}}{{if $deployInfo.cluster}}\n• Cluster: {{$deployInfo.cluster}}{{end}}{{if $deployInfo.namespace}}\n• Namespace: {{$deployInfo.namespace}}{{end}}"
+        "text": "{{if .Build.Substitutions}}*Deployment Details*{{if eq .Build.Substitutions._CLUSTER_PROJECT \"draftboard-368620\"}}\n\n⚠️ *PRODUCTION DEPLOYMENT*{{end}}\n\n*Project:* {{.Build.Substitutions._CLUSTER_PROJECT}}\n*Cluster:* {{.Build.Substitutions._CLUSTER}}{{if .Build.Substitutions._LOCATION}}\n*Location:* {{.Build.Substitutions._LOCATION}}{{end}}\n*Namespace:* {{.Build.Substitutions._NAMESPACE}}{{end}}"
       }
     },
-    {{end}}
     {
       "type": "divider"
     },
@@ -30,17 +48,18 @@
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "View Build Logs"
+        "text": "View detailed build information in the Cloud Console"
       },
       "accessory": {
         "type": "button",
         "text": {
           "type": "plain_text",
-          "text": "Logs"
+          "text": "View Logs",
+          "emoji": true
         },
-        "value": "click_me_123",
+        "value": "view_logs",
         "url": "{{.Build.LogUrl}}",
-        "action_id": "button-action"
+        "action_id": "view_logs"
       }
     }
   ]

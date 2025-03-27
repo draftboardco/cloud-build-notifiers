@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"strings"
 	"text/template"
 
 	cbpb "cloud.google.com/go/cloudbuild/apiv1/v2/cloudbuildpb"
@@ -65,144 +64,12 @@ func (s *slackNotifier) SetUp(ctx context.Context, cfg *notifiers.Config, blockK
 		return fmt.Errorf("failed to get token secret: %w", err)
 	}
 	s.webhookURL = wu
-	tmpl, err := template.New("blockkit_template").Funcs(template.FuncMap{
-		"replace": func(s, old, new string) string {
-			return strings.ReplaceAll(s, old, new)
-		},
-		"getRepoName": func(source *cbpb.Source) string {
-			if source == nil || source.Source == nil {
-				return ""
-			}
-			switch s := source.Source.(type) {
-			case *cbpb.Source_RepoSource:
-				return s.RepoSource.RepoName
-			case *cbpb.Source_GitSource:
-				// Extract repo name from git URL
-				url := s.GitSource.Url
-				if url == "" {
-					return ""
-				}
-				// Remove .git suffix if present
-				url = strings.TrimSuffix(url, ".git")
-				// Get the last part of the URL
-				parts := strings.Split(url, "/")
-				if len(parts) > 0 {
-					return parts[len(parts)-2] + "/" + parts[len(parts)-1]
-				}
-				return ""
-			case *cbpb.Source_StorageSource:
-				return "gs://" + s.StorageSource.Bucket
-			default:
-				return ""
-			}
-		},
-		"getSourceRef": func(source *cbpb.Source) string {
-			if source == nil || source.Source == nil {
-				return ""
-			}
-			switch s := source.Source.(type) {
-			case *cbpb.Source_RepoSource:
-				rs := s.RepoSource
-				switch {
-				case rs.GetBranchName() != "":
-					return "branch/" + rs.GetBranchName()
-				case rs.GetTagName() != "":
-					return "tag/" + rs.GetTagName()
-				case rs.GetCommitSha() != "":
-					return "commit/" + rs.GetCommitSha()
-				default:
-					return ""
-				}
-			case *cbpb.Source_GitSource:
-				if s.GitSource.Revision != "" {
-					return fmt.Sprintf("commit/%s", s.GitSource.Revision)
-				}
-				return ""
-			case *cbpb.Source_StorageSource:
-				if s.StorageSource.Generation != 0 {
-					return fmt.Sprintf("generation/%d", s.StorageSource.Generation)
-				}
-				return "object/" + s.StorageSource.Object
-			default:
-				return ""
-			}
-		},
-		"getSourceType": func(source *cbpb.Source) string {
-			if source == nil || source.Source == nil {
-				return ""
-			}
-			switch source.Source.(type) {
-			case *cbpb.Source_RepoSource:
-				return "Cloud Source Repository"
-			case *cbpb.Source_GitSource:
-				return "Git Repository"
-			case *cbpb.Source_StorageSource:
-				return "Cloud Storage"
-			default:
-				return "Unknown"
-			}
-		},
-		"getGitRef": func(build *cbpb.Build) string {
-			if build == nil || build.Substitutions == nil {
-				return ""
-			}
-			branch := build.Substitutions["BRANCH_NAME"]
-			shortSha := build.Substitutions["SHORT_SHA"]
-			if branch != "" && shortSha != "" {
-				return fmt.Sprintf("branch/%s (%s)", branch, shortSha)
-			}
-			tag := build.Substitutions["TAG_NAME"]
-			if tag != "" && shortSha != "" {
-				return fmt.Sprintf("tag/%s (%s)", tag, shortSha)
-			}
-			if shortSha != "" {
-				return fmt.Sprintf("commit/%s", shortSha)
-			}
-			return ""
-		},
-		"getDeploymentInfo": func(build *cbpb.Build) map[string]string {
-			if build == nil || build.Substitutions == nil {
-				return nil
-			}
-			info := make(map[string]string)
 
-			// Try both standard and custom substitutions
-			projectKeys := []string{"_CLUSTER_PROJECT", "PROJECT_ID"}
-			for _, key := range projectKeys {
-				if val := build.Substitutions[key]; val != "" {
-					info["project"] = val
-					break
-				}
-			}
+	tmpl, err := template.New("blockkit_template").Parse(blockKitTemplate)
 
-			clusterKeys := []string{"_CLUSTER", "CLUSTER"}
-			for _, key := range clusterKeys {
-				if val := build.Substitutions[key]; val != "" {
-					info["cluster"] = val
-					break
-				}
-			}
-
-			namespaceKeys := []string{"_NAMESPACE", "NAMESPACE"}
-			for _, key := range namespaceKeys {
-				if val := build.Substitutions[key]; val != "" {
-					info["namespace"] = val
-					break
-				}
-			}
-
-			return info
-		},
-		"isProd": func(info map[string]string) bool {
-			if info == nil {
-				return false
-			}
-			// Check various production indicators in cluster name or namespace
-			cluster := strings.ToLower(info["cluster"])
-			namespace := strings.ToLower(info["namespace"])
-			return strings.Contains(cluster, "prod") || strings.Contains(namespace, "prod") || namespace == "p" || namespace == "prd"
-		},
-	}).Parse(blockKitTemplate)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
 
 	s.tmpl = tmpl
 	s.br = br
