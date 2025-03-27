@@ -1,0 +1,87 @@
+{
+  "id": "177e4613-0964-426d-9d6f-bbe677a7d6da",
+  "status": "SUCCESS",
+  "source": {
+    "gitSource": {
+      "url": "https://github.com/draftboardco/sales-intro-svc.git",
+      "revision": "b8decbd7e1df6dbb2e075027d502088105eec68d"
+    }
+  },
+  "createTime": "2025-03-20T19:00:56.271860Z",
+  "startTime": "2025-03-20T19:00:56.800635899Z",
+  "finishTime": "2025-03-20T19:05:42.421039Z",
+  "results": {
+    "buildStepImages": ["sha256:52fe2772eb74dbb5536bd774b2dcbad1c3a902134312aff78b0cff634740ee58"],
+    "buildStepOutputs": [""]
+  },
+  "steps": [{
+    "name": "gcr.io/k8s-skaffold/skaffold:v2.3.6-lts",
+    "env": ["ACCESS_TOKEN_USR\u003dsiabroo"],
+    "args": ["-c", "echo \"$(git rev-parse --short HEAD):$(date +%Y%m%dT%H%M%S)\" \u003e git.info; gcloud container clusters get-credentials --project\u003dclear-rock-393213 --zone\u003dus-central1-c sales-dev-1; skaffold run -f\u003d_deploy/skaffold.yaml --default-repo\u003dus-central1-docker.pkg.dev/draftboard-368620/sales-app --namespace\u003ddev;\n"],
+    "id": "Deploy application to cluster",
+    "entrypoint": "bash",
+    "secretEnv": ["ACCESS_TOKEN_PWD"],
+    "timing": {
+      "startTime": "2025-03-20T19:01:06.409251915Z",
+      "endTime": "2025-03-20T19:05:41.643655840Z"
+    },
+    "status": "SUCCESS",
+    "pullTiming": {
+      "startTime": "2025-03-20T19:01:06.409251915Z",
+      "endTime": "2025-03-20T19:02:40.077913754Z"
+    }
+  }],
+  "timeout": "3600s",
+  "projectId": "draftboard-368620",
+  "logsBucket": "gs://354610194356.cloudbuild-logs.googleusercontent.com",
+  "sourceProvenance": {
+    "resolvedGitSource": {
+      "url": "https://github.com/draftboardco/sales-intro-svc.git",
+      "revision": "b8decbd7e1df6dbb2e075027d502088105eec68d"
+    }
+  },
+  "buildTriggerId": "6cdcdd2c-a0d2-45e6-92e2-4172db07e755",
+  "options": {
+    "substitutionOption": "ALLOW_LOOSE",
+    "logging": "LEGACY",
+    "dynamicSubstitutions": true,
+    "pool": {
+    }
+  },
+  "logUrl": "https://console.cloud.google.com/cloud-build/builds;region\u003dus-central1/177e4613-0964-426d-9d6f-bbe677a7d6da?project\u003d354610194356",
+  "substitutions": {
+    "COMMIT_SHA": "b8decbd7e1df6dbb2e075027d502088105eec68d",
+    "TRIGGER_BUILD_CONFIG_PATH": "_deploy/cloudbuild.yaml",
+    "REPO_FULL_NAME": "draftboardco/sales-intro-svc",
+    "REF_NAME": "develop",
+    "_NAMESPACE": "dev",
+    "SHORT_SHA": "b8decbd",
+    "_ZONE": "us-central1-c",
+    "BRANCH_NAME": "develop",
+    "TRIGGER_NAME": "sales-intro-svc",
+    "_GITHUB_USR": "siabroo",
+    "REVISION_ID": "b8decbd7e1df6dbb2e075027d502088105eec68d",
+    "_CLUSTER": "sales-dev-1",
+    "REPO_NAME": "sales-intro-svc",
+    "_CLUSTER_PROJECT": "clear-rock-393213"
+  },
+  "tags": ["trigger-6cdcdd2c-a0d2-45e6-92e2-4172db07e755"],
+  "timing": {
+    "FETCHSOURCE": {
+      "startTime": "2025-03-20T19:00:57.593184312Z",
+      "endTime": "2025-03-20T19:01:05.529100290Z"
+    },
+    "BUILD": {
+      "startTime": "2025-03-20T19:01:05.529213706Z",
+      "endTime": "2025-03-20T19:05:41.643707526Z"
+    }
+  },
+  "queueTtl": "3600s",
+  "name": "projects/354610194356/locations/us-central1/builds/177e4613-0964-426d-9d6f-bbe677a7d6da",
+  "availableSecrets": {
+    "secretManager": [{
+      "versionName": "projects/354610194356/secrets/github-token/versions/latest",
+      "env": "ACCESS_TOKEN_PWD"
+    }]
+  }
+}

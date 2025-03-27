@@ -3,9 +3,26 @@
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "Cloud Build {{.Build.ProjectId}} {{.Build.Id}} {{.Params.buildStatus}}"
+        "text": "Cloud Build {{.Build.ProjectId}} {{.Build.Id}} {{.Build.Status}}"
       }
     },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "{{if .Build.Source}}*Source Information:*\n• Type: {{getSourceType .Build.Source}}\n• Location: {{getRepoName .Build.Source}}{{if getSourceRef .Build.Source}}\n• {{getSourceRef .Build.Source}}{{end}}{{if getGitRef .Build}}\n• Git Ref: {{getGitRef .Build}}{{end}}{{end}}"
+      }
+    },
+    {{$deployInfo := getDeploymentInfo .Build}}
+    {{if $deployInfo}}
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Deployment Information:*{{if isProd $deployInfo}} ⚠️ *PRODUCTION*{{end}}\n{{if $deployInfo.project}}• Project: {{$deployInfo.project}}{{end}}{{if $deployInfo.cluster}}\n• Cluster: {{$deployInfo.cluster}}{{end}}{{if $deployInfo.namespace}}\n• Namespace: {{$deployInfo.namespace}}{{end}}"
+      }
+    },
+    {{end}}
     {
       "type": "divider"
     },
@@ -27,4 +44,4 @@
       }
     }
   ]
-  
+
