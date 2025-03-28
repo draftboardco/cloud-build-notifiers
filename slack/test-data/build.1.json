@@ -1,0 +1,85 @@
+{
+  "id": "7134be45-389a-4eae-86bd-c049eaa310a9",
+  "status": "WORKING",
+  "source": {
+    "storageSource": {
+      "bucket": "draftboard-368620_cloudbuild",
+      "object": "source/1742557736.879493-8dc3d43c28ef4a3b8d9d81bd9264fae8.tgz",
+      "generation": "1742557737797427"
+    }
+  },
+  "createTime": "2025-03-21T11:48:58.436901721Z",
+  "startTime": "2025-03-21T11:48:58.872507373Z",
+  "steps": [{
+    "name": "gcr.io/cloud-builders/git",
+    "args": ["-c", "echo \"$SSH_KEY\" \u003e\u003e /root/.ssh/id_rsa\nchmod 400 /root/.ssh/id_rsa\ncp known_hosts.github /root/.ssh/known_hosts\n"],
+    "entrypoint": "bash",
+    "secretEnv": ["SSH_KEY"],
+    "volumes": [{
+      "name": "ssh",
+      "path": "/root/.ssh"
+    }]
+  }, {
+    "name": "gcr.io/cloud-builders/git",
+    "args": ["clone", "--depth\u003d1", "--branch\u003dv0.15.0", "--recurse-submodules", "--shallow-submodules", "--jobs\u003d10", "git@github.com:draftboardco/sales.git"],
+    "volumes": [{
+      "name": "ssh",
+      "path": "/root/.ssh"
+    }]
+  }, {
+    "name": "gcr.io/k8s-skaffold/skaffold:v2.3.6-lts",
+    "env": ["ACCESS_TOKEN_USR\u003dsiabroo"],
+    "args": ["-c", "find $(pwd) \u003e files.txt;  cd sales; cd app; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd filestore-svc; echo $(git rev-parse --short HEAD) \u003e cmd/git.info; cd -; cd analytics-svc; echo $(git rev-parse --short HEAD) \u003e cmd/git.info; cd -; cd linkedin-svc; echo $(git rev-parse --short HEAD) \u003e cmd/git.info; cd -; cd api-gateway; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd events-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd user-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd company-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd prospect-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd offer-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd intro-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd google-api-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e git.info; cd -; cd pathfinder-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e cmd/git.info; cd -; cd extension-auth-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e cmd/git.info; cd -; cd extension-prospect-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e cmd/git.info; cd -; cd subscription-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e cmd/git.info; cd -; cd payments-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e cmd/git.info; cd -; cd apollo-svc; echo \"$(git rev-parse --short HEAD):$(date +%Y-%m-%dT%H:%M:%S)\" \u003e cmd/git.info; cd -;\ngit status; git submodule foreach git status;\ngcloud container clusters get-credentials --project\u003ddraftboard-368620 --location\u003dus-central1-c sales-prod-1; export STATE\u003d$(git rev-list -1 HEAD --abbrev-commit); skaffold build -f\u003d_deploy/skaffold.yaml --default-repo\u003dus-central1-docker.pkg.dev/draftboard-368620/sales-app --file-output ../build-$STATE.json --namespace\u003ds-prod; \n"],
+    "id": "Build application",
+    "entrypoint": "bash",
+    "secretEnv": ["ACCESS_TOKEN_PWD"]
+  }, {
+    "name": "gcr.io/k8s-skaffold/skaffold:v2.3.6-lts",
+    "env": ["ACCESS_TOKEN_USR\u003dsiabroo"],
+    "args": ["-c", "cd sales; gcloud container clusters get-credentials --project\u003ddraftboard-368620 --location\u003dus-central1-c sales-prod-1; export STATE\u003d$(git rev-list -1 HEAD --abbrev-commit); skaffold render -a ../build-$STATE.json -f\u003d_deploy/skaffold.yaml --default-repo\u003dus-central1-docker.pkg.dev/draftboard-368620/sales-app --namespace\u003ds-prod --output\u003d\u0027../sales.yaml\u0027; gcloud storage cp \u0027../sales.yaml\u0027 \u0027../files.txt\u0027 \u0027../build-*.json\u0027 gs://draftboard-368620_cloudbuild/manual/7134be45-389a-4eae-86bd-c049eaa310a9 || true; skaffold deploy -a ../build-$STATE.json -f\u003d_deploy/skaffold.yaml --default-repo\u003dus-central1-docker.pkg.dev/draftboard-368620/sales-app --namespace\u003ds-prod;\n"],
+    "id": "Deploy application to cluster",
+    "entrypoint": "bash",
+    "secretEnv": ["ACCESS_TOKEN_PWD"]
+  }],
+  "timeout": "3600s",
+  "projectId": "draftboard-368620",
+  "logsBucket": "gs://354610194356.cloudbuild-logs.googleusercontent.com",
+  "sourceProvenance": {
+    "resolvedStorageSource": {
+      "bucket": "draftboard-368620_cloudbuild",
+      "object": "source/1742557736.879493-8dc3d43c28ef4a3b8d9d81bd9264fae8.tgz",
+      "generation": "1742557737797427"
+    }
+  },
+  "options": {
+    "logging": "LEGACY",
+    "pool": {
+    }
+  },
+  "logUrl": "https://console.cloud.google.com/cloud-build/builds;region\u003dus-central1/7134be45-389a-4eae-86bd-c049eaa310a9?project\u003d354610194356",
+  "substitutions": {
+    "_CLUSTER": "sales-prod-1",
+    "_CLUSTER_PROJECT": "draftboard-368620",
+    "_GITHUB_USR": "siabroo",
+    "_LOCATION": "us-central1-c",
+    "_NAMESPACE": "s-prod",
+    "_TAG": "v0.15.0"
+  },
+  "artifacts": {
+    "objects": {
+      "location": "gs://draftboard-368620_cloudbuild/7134be45-389a-4eae-86bd-c049eaa310a9/",
+      "paths": ["files.txt", "sales.yaml", "build-*.json"]
+    }
+  },
+  "queueTtl": "3600s",
+  "name": "projects/354610194356/locations/us-central1/builds/7134be45-389a-4eae-86bd-c049eaa310a9",
+  "availableSecrets": {
+    "secretManager": [{
+      "versionName": "projects/draftboard-368620/secrets/github-key/versions/latest",
+      "env": "SSH_KEY"
+    }, {
+      "versionName": "projects/354610194356/secrets/github-token/versions/latest",
+      "env": "ACCESS_TOKEN_PWD"
+    }]
+  }
+}

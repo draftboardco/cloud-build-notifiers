@@ -10,3 +10,8 @@
 
 .vscode/
 .DS_Store
+/.idea/.gitignore
+/.idea/cloud-build-notifiers.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
